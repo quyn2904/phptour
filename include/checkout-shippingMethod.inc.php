@@ -15,6 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $shippingFee = 25000;
     }
 
+    $_SESSION['shippingMethod'] = $shippingMethod;
+    $_SESSION['shippingFee'] = $shippingFee;
+
     try {
         $queryOrder = "SELECT * FROM  `order` WHERE id = :id;";
 
