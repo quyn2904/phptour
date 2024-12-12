@@ -1,3 +1,39 @@
+<?php
+session_start();
+require_once "include/db.inc.php";
+
+$productId = isset($_GET['productId']) ? intval($_GET['productId']) : null;
+
+$product = null;
+
+if ($productId) {
+  try {
+      // Truy vấn thông tin sản phẩm
+      $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id");
+      $stmt->bindParam(':id', $productId, PDO::PARAM_INT);
+      $stmt->execute();
+      $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      $stmtImages = $pdo->prepare("SELECT path FROM image WHERE product_id = :productId");
+      $stmtImages->bindParam(':productId', $productId, PDO::PARAM_INT);
+      $stmtImages->execute();
+      $images = $stmtImages->fetchAll(PDO::FETCH_ASSOC);
+
+      $stmtPrice = $pdo->prepare('SELECT * FROM productprice WHERE product_id = :productId');
+      $stmtPrice->bindParam(':productId', $productId, PDO::PARAM_INT);
+      $stmtPrice->execute();
+      $price = $stmtPrice->fetch(PDO::FETCH_ASSOC);
+  } catch (PDOException $e) {
+      echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
+  }
+}
+
+if (!$product) {
+  echo "<h1>Sản phẩm không tồn tại!</h1>";
+  exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -10,6 +46,7 @@
     />
   </head>
   <body>
+    <!-- header -->
     <div class="flex items-center justify-between px-20 py-4">
       <h1 class="text-2xl font-bold text-red-500">Usbibracelet</h1>
       <div class="relative flex w-3/5 items-center">
@@ -18,16 +55,21 @@
           placeholder="Tìm kiếm ..."
         />
         <button class="absolute right-3 h-6">
-          <img src="{search}" class="h-full w-auto" />
+          <img src="./assets/images/search.png" class="h-full w-auto" />
         </button>
       </div>
       <div class="flex items-center gap-4">
-        <button class="rounded-lg border bg-blue-400 px-6 py-2 font-bold">
-          Login
-        </button>
-        <button class="rounded-lg border bg-green-400 px-6 py-2 font-bold">
-          Register
-        </button>
+        <?php
+          if (isset($_SESSION["user_name"])) {
+            // echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
+            echo "<a href='cart.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Cart</button></a>";
+            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
+          } else {
+            echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
+            echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
+          }
+        ?>
+        
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -41,35 +83,31 @@
         <li>Tin tức</li>
       </ul>
     </div>
+    <!-- end header -->
+
     <div class="mt-8 grid grid-cols-4 gap-16 px-40">
       <div class="col-span-2 h-[480px] w-full">
         <div class="splide h-full w-full" role="group" aria-label="Splide">
           <div class="splide__track h-full w-full">
             <ul class="splide__list h-full w-full">
-              <li class="splide__slide h-full w-full">
-                <img
-                  class="h-full w-full"
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN-DR6EPNafE7pyya09WL-HpjohmnqJMUZyA&s"
-                />
-              </li>
-              <li class="splide__slide">
-                <img
-                  class="h-full w-full"
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQe8EHPEffIRAIYPi3mjajBOuq4vhZ2aUDdEg&s"
-                />
-              </li>
-              <li class="splide__slide">
-                <img
-                  class="h-full w-full"
-                  src="https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2024/02/vong-deo-tay-nu-swarovski-teddy-bracelet-bear-pink-rose-gold-tone-plated-5669169-mau-hong-65ded6c1184c8-28022024134625.jpg"
-                />
-              </li>
+              <?php if (!empty($images)): ?>
+                  <?php foreach ($images as $image): ?>
+                    <li class="splide__slide">
+                        <img
+                          class="h-full w-full"
+                          src="<?= $image['path'] ?>"
+                        />
+                    </li>
+                  <?php endforeach; ?>
+              <?php else: ?>
+                  <p>Không có hình ảnh cho sản phẩm này.</p>
+              <?php endif; ?>
             </ul>
           </div>
         </div>
       </div>
-      <div class="col-span-2">
-        <h1 class="text-4xl font-bold mt-10">USBI | Classic Charm</h1>
+      <form class="col-span-2" method="post" action="include/add-to-cart.inc.php">
+        <h1 class="text-4xl font-bold"><?= $product['name'] ?></h1>
         <div class="flex items-center mt-3 gap-2">
           <div class="mt-1 flex gap-2">
             <img src="./assets/images/star-yellow.svg" />
@@ -81,19 +119,22 @@
           <p class="translate-y-0.5">(30)</p>
         </div>
         <div class="mt-5">
-          <h1 class="font-semibold text-3xl text-red-500">2.500.000 đ</h1>
+          <input type="hidden" name="productId" value="<?= $productId ?>"/>
+          <h1 class="font-semibold text-3xl text-red-500"><?php echo number_format($price['price'], 0, ',', '.') . 'đ'; ?></h1>
         </div>
         <div class="flex text-2xl h-10 mt-5 font-semibold border-2 w-fit">
-          <div class="w-10 text-center hover:bg-slate-200 cursor-pointer">
+          <div id="decrease-quantity" class="w-10 text-center hover:bg-slate-200 cursor-pointer">
             -
           </div>
-          <div class="border-r-2 border-l-2 w-20 text-center">1</div>
-          <div class="w-10 text-center hover:bg-slate-200 cursor-pointer">
+          <input type="hidden" name="quantity" id="quantityInput" value="1"/>
+          <div id="quantity" class="border-r-2 border-l-2 w-20 text-center">1</div>
+          <div id="increase-quantity" class="w-10 text-center hover:bg-slate-200 cursor-pointer">
             +
           </div>
         </div>
         <button
           class="block border border-2 py-2 font-semibold rounded-2xl border-red-500 w-96 text-center mt-5 text-2xl"
+          type="submit"
         >
           THÊM VÀO GIỎ HÀNG
         </button>
@@ -112,15 +153,7 @@
               <p id="product-details-icon-trigger">+</p>
             </div>
             <p id="product-details" class="hidden text-sm font-normal italic">
-              Accessorizing can be a challenging sport, but the Tennis Bracelet
-              in silver is always at the top of its game. Comfortable and chic,
-              this radiant piece gets you through the day, from morning to late
-              cocktail hours. To achieve greater durability, each shimmering
-              crystal is individually set and tightly secured. The chain itself
-              is crafted from high-quality 316L stainless steel and features
-              sizing rings to always fit you perfectly. The Tennis Bracelet is
-              also a great team player, so pair it with your favorite Daniel
-              Wellington watch or bracelets.
+            <?= $product['description'] ?>
             </p>
           </div>
           <div
@@ -164,7 +197,7 @@
             </p>
           </div>
         </div>
-      </div>
+      </form>
     </div>
 
     <div class="mt-20 mx-32 pt-10 border-t-2 border-slate-400">
@@ -240,6 +273,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      // Kiểm tra xem có thông báo thành công không
+      document.addEventListener("DOMContentLoaded", function () {
+        if (<?php echo isset($_SESSION['cart_added']) ? 'true' : 'false'; ?>) {
+          alert('Sản phẩm đã được thêm vào giỏ hàng!');
+          <?php unset($_SESSION['cart_added']); ?>
+        }
+      });
+
       var splide = new Splide(".splide", {
         type: "fade",
         rewind: true,
@@ -329,6 +370,26 @@
             shippingReturnIconTrigger.innerText = "+";
           }
         });
+
+      let quantity = 1;
+      const quantityElement = document.getElementById("quantity");
+      const quantityInput =document.getElementById("quantityInput");
+      const decreaseButton = document.getElementById("decrease-quantity");
+      const increaseButton = document.getElementById("increase-quantity");
+
+      decreaseButton.addEventListener("click", function () {
+        if (quantity > 1) {
+          quantity--;
+          quantityElement.textContent = quantity;
+          quantityInput.value = quantity;
+        }
+      });
+
+      increaseButton.addEventListener("click", function () {
+        quantity++;
+        quantityElement.textContent = quantity;
+        quantityInput.value = quantity;
+      });
     </script>
   </body>
 </html>

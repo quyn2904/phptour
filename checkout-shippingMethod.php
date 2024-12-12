@@ -1,3 +1,48 @@
+<?php
+session_start();
+require_once "include/db.inc.php";
+$total = 0;
+
+if (isset($_SESSION['cart'])) {
+  $cartItems = [];
+  foreach ($_SESSION['cart'] as $item) {
+      $productId = $item['productId'];
+      $quantity = $item['quantity'];
+
+      // Truy vấn thông tin sản phẩm từ database
+      $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id");
+      $stmt->bindParam(':id', $productId, PDO::PARAM_INT);
+      $stmt->execute();
+      $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($product) { // Kiểm tra xem sản phẩm có tồn tại
+        $stmtImages = $pdo->prepare("SELECT path FROM image WHERE product_id = :productId");
+        $stmtImages->bindParam(':productId', $productId, PDO::PARAM_INT);
+        $stmtImages->execute();
+        $images = $stmtImages->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtPrice = $pdo->prepare('SELECT * FROM productprice WHERE product_id = :productId');
+        $stmtPrice->bindParam(':productId', $productId, PDO::PARAM_INT);
+        $stmtPrice->execute();
+        $price = $stmtPrice->fetch(PDO::FETCH_ASSOC);
+
+        if ($price) { // Kiểm tra xem giá có tồn tại
+            // Kết hợp thông tin
+            $cartItems[] = [
+                'productId' => $product['id'],
+                'productName' => $product['name'],
+                'productQuantity' => $product['quantity'],
+                'quantity' => $quantity,
+                'images' => $images,
+                'price' => $price['price'], // Thay 'price' bằng tên cột tương ứng nếu cần
+            ];
+            $total += $quantity * $price['price'];
+        }
+      }
+   }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -19,16 +64,20 @@
           placeholder="Tìm kiếm ..."
         />
         <button class="absolute right-3 h-6">
-          <img src="{search}" class="h-full w-auto" />
+          <img src="./assets/images/search.png" class="h-full w-auto" />
         </button>
       </div>
       <div class="flex items-center gap-4">
-        <button class="rounded-lg border bg-blue-400 px-6 py-2 font-bold">
-          Login
-        </button>
-        <button class="rounded-lg border bg-green-400 px-6 py-2 font-bold">
-          Register
-        </button>
+        <?php
+          if (isset($_SESSION["user_name"])) {
+            // echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
+            echo "<a href='cart.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Cart</button></a>";
+            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
+          } else {
+            echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
+            echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
+          }
+        ?>
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -42,70 +91,48 @@
         <li>Tin tức</li>
       </ul>
     </div>
-    <!-- header -->
+    <!-- end header -->
+
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
       <div class="flex justify-between items-start">
         <!-- Order Summary -->
         <div class="w-1/2 pr-6">
           <h2 class="text-xl font-bold mb-4">Tóm tắt đơn hàng</h2>
-          <div class="flex items-center mb-4">
-            <img
-              alt="Product 1 image"
-              class="w-16 h-16 mr-4"
-              height="60"
-              src="https://storage.googleapis.com/a1aa/image/tBPCKbSO9k55BVVXqp9qepe4Pv3wrUSEU0E44j9gXkOSrG4TA.jpg"
-              width="60"
-            />
-            <div class="flex-1">
-              <p>Sản phẩm 1</p>
-              <div class="flex items-center">
-                <button
-                  class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
-                >
-                  -
-                </button>
-                <span class="px-2"> 1 </span>
-                <button
-                  class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <p class="w-20 text-right">100.000đ</p>
-            <button class="text-gray-500 ml-4">
-              <i class="fas fa-trash"> </i>
-            </button>
-          </div>
-          <div class="flex items-center mb-4">
-            <img
-              alt="Product 1 image"
-              class="w-16 h-16 mr-4"
-              height="60"
-              src="https://storage.googleapis.com/a1aa/image/tBPCKbSO9k55BVVXqp9qepe4Pv3wrUSEU0E44j9gXkOSrG4TA.jpg"
-              width="60"
-            />
-            <div class="flex-1">
-              <p>Sản phẩm 1</p>
-              <div class="flex items-center">
-                <button
-                  class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
-                >
-                  -
-                </button>
-                <span class="px-2"> 1 </span>
-                <button
-                  class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
-                >
-                  +
+          <?php if (!empty($cartItems)): ?>
+            <?php foreach ($cartItems as $item): ?>
+              <div class="flex items-center mb-4">
+                <img
+                  alt="Product 1 image"
+                  class="w-16 h-16 mr-4"
+                  height="60"
+                  src="<?php echo $item['images'][0]['path']; ?>"
+                  width="60"
+                />
+                <div class="flex-1">
+                  <p><?= $item['productName'] ?></p>
+                  <div class="flex items-center">
+                    <button
+                      class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
+                    >
+                      -
+                    </button>
+                    <span class="px-2"> <?= $item['quantity'] ?> </span>
+                    <button
+                      class="border w-6 h-6 flex items-center justify-center font-bold rounded-lg bg-slate-200"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <p class="w-20 text-right"><?php echo number_format($item['quantity'] * $item['price'], 0, ',', '.') . 'đ'; ?></p>
+                <button class="text-gray-500 ml-4">
+                  <i class="fas fa-trash"> </i>
                 </button>
               </div>
-            </div>
-            <p class="w-20 text-right">100.000đ</p>
-            <button class="text-gray-500 ml-4">
-              <i class="fas fa-trash"> </i>
-            </button>
-          </div>
+            <?php endforeach; ?>
+          <?php else: ?>
+              <p>Không có sản phẩm trong giỏ hàng.</p>
+          <?php endif; ?>
           <div class="mb-4">
             <label class="block mb-2" for="discount-code"> Mã giảm giá </label>
             <div class="flex">
@@ -123,24 +150,24 @@
           <div class="border-t border-gray-300 pt-4">
             <div class="flex justify-between mb-2">
               <p>Tổng đơn hàng</p>
-              <p>300.000đ</p>
+              <p><?php echo number_format($total, 0, ',', '.') . 'đ'; ?></p>
             </div>
             <div class="flex justify-between mb-2">
               <p>Phí vận chuyển</p>
-              <p class="text-green-500">FREE</p>
+              <p class="text-green-500" id="shippingFee">FREE</p>
             </div>
             <div class="flex justify-between mb-2">
               <p>Giảm giá</p>
-              <p>-50.000đ</p>
+              <p>-0đ</p>
             </div>
             <div class="flex justify-between font-bold text-red-500">
               <p>Tổng thanh toán</p>
-              <p>250.000đ</p>
+              <p id="total"><?php echo number_format($total, 0, ',', '.') . 'đ'; ?></p>
             </div>
           </div>
         </div>
         <!-- Contact and Shipping Information -->
-        <div class="w-1/2 pl-6">
+        <div class="w-1/2 pl-6" >
           <div class="mb-5 items-center flex gap-1">
             <p class="text-red-500 font-semibold">Vận chuyển</p>
             <div class="flex gap-2 items-center">
@@ -164,28 +191,28 @@
             </div>
             <p class="font-semibold text-slate-500">Thanh toán</p>
           </div>
-          <form>
+          <form method="post" action="include/checkout-shippingMethod.inc.php">
             <div class="border rounded mb-5 px-4 py-2 shadow-lg">
               <h1 class="font-bold text-lg">Phương thức vận chuyển</h1>
               <div class="mt-3">
                 <div class="flex items-center justify-between">
                   <div class="flex gap-5">
-                    <input id="doityourself" type="radio" class="bg-red-500" />
+                    <input id="doityourself" value="doityourself" name="shippingMethod" type="radio" class="bg-red-500" />
                     <label for="doityourself" class="-translate-y-0.5">Tự sắp xếp</label>
                   </div>
                   <p class="text-green-400">FREE</p>
                 </div>
                 <div class="flex mt-1 items-center justify-between">
                   <div class="flex gap-5">
-                    <input id="grab" type="radio" class="bg-red-500" />
+                    <input id="grab" value="grab" type="radio" name="shippingMethod" class="bg-red-500" />
                     <label for="grab" class="-translate-y-0.5">Grab giao hàng</label>
                   </div>
                   <p class="">+ 20 000đ</p>
                 </div>
                 <div class="flex mt-1 items-center justify-between">
                   <div class="flex gap-5">
-                    <input id="bee" type="radio" class="bg-red-500" />
-                    <label for="bee" class="-translate-y-0.5">Bee giao hàng<label/>
+                    <input id="bee" type="radio" value="bee" name="shippingMethod" class="bg-red-500" />
+                    <label for="bee" class="-translate-y-0.5">Bee giao hàng</label>
                   </div>
                   <p class="">+ 25 000đ</p>
                 </div>
@@ -200,15 +227,14 @@
                 Quay lại
               </button>
               <button
-                id="countinue"
-                type="button"
+                type="submit"
                 class="bg-red-500 text-white px-6 py-2 w-32"
               >
                 Tiếp tục
               </button>
             </div>
           </form>
-        </div>
+        </dì>
       </div>
     </div>
     <!-- footer -->
@@ -250,16 +276,25 @@
       doityourself.addEventListener("click", () => {
         grab.checked = false;
         bee.checked = false;
+        shippingFee.textContent = "FREE";
+        shippingFee.classList.add("text-green-500");
+        document.getElementById("total").innerHTML = "<?php echo number_format($total, 0, ',', '.') . 'đ'; ?>";
       });
 
       grab.addEventListener("click", () => {
         doityourself.checked = false;
         bee.checked = false;
+        shippingFee.textContent = "+ 20 000đ";
+        shippingFee.classList.remove("text-green-500");
+        document.getElementById("total").innerHTML = "<?php echo number_format($total + 20000, 0, ',', '.') . 'đ'; ?>";
       });
 
       bee.addEventListener("click", () => {
         doityourself.checked = false;
         grab.checked = false;
+        shippingFee.textContent = "+ 25 000đ";
+        shippingFee.classList.remove("text-green-500");
+        document.getElementById("total").innerHTML = "<?php echo number_format($total + 25000, 0, ',', '.') . 'đ'; ?>";
       });
 
       document.getElementById("countinue").addEventListener("click", () => {

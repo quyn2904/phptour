@@ -16,11 +16,12 @@
       </div>
       <div class="flex w-4/5 flex-col items-center justify-center">
         <h1 class="mb-5 text-4xl font-bold text-red-600">ĐĂNG NHẬP</h1>
-        <form class="w-4/5">
+        <form class="w-4/5" action="include/login.inc.php" method="post">
           <div class="mb-4 grid grid-cols-5 items-center gap-3">
             <label htmlFor="email" class="text-xl"> Email: </label>
             <input
               id="email"
+              name="email"
               class="col-span-4 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600"
               placeholder="Địa chỉ email"
               type="email"
@@ -30,6 +31,7 @@
             <label htmlFor="password" class="text-xl"> Password: </label>
             <input
               id="password"
+              name="password"
               class="col-span-4 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600"
               placeholder="Mật khẩu"
               type="password"

@@ -1,3 +1,8 @@
+<?php
+session_start();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -29,12 +34,16 @@
         <button class="h-8">
           <img src="./assets/images/heart.png" class="h-full w-auto" />
         </button> -->
-        <button class="rounded-lg border bg-blue-400 px-6 py-2 font-bold">
-          Login
-        </button>
-        <button class="rounded-lg border bg-green-400 px-6 py-2 font-bold">
-          Register
-        </button>
+        <?php
+          if (isset($_SESSION["user_name"])) {
+            echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
+            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
+          } else {
+            echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
+            echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
+          }
+        ?>
+        
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -364,5 +373,11 @@
       </div>
     </div>
     <!-- end footer -->
+     <script>
+      btn_login = document.getElementById("btn_login");
+      btn_login.addEventListener("click", function () {
+        window.location.href = "./login.php";
+      });
+     </script>
   </body>
 </html>

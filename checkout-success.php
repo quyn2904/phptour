@@ -1,3 +1,8 @@
+<?php
+session_start();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -19,16 +24,20 @@
           placeholder="Tìm kiếm ..."
         />
         <button class="absolute right-3 h-6">
-          <img src="{search}" class="h-full w-auto" />
+          <img src="./assets/images/search.png" class="h-full w-auto" />
         </button>
       </div>
       <div class="flex items-center gap-4">
-        <button class="rounded-lg border bg-blue-400 px-6 py-2 font-bold">
-          Login
-        </button>
-        <button class="rounded-lg border bg-green-400 px-6 py-2 font-bold">
-          Register
-        </button>
+        <?php
+          if (isset($_SESSION["user_name"])) {
+            // echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
+            echo "<a href='cart.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Cart</button></a>";
+            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
+          } else {
+            echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
+            echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
+          }
+        ?>
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -42,12 +51,13 @@
         <li>Tin tức</li>
       </ul>
     </div>
-    <!-- header -->
+    <!-- end header -->
+
     <div class="flex flex-col items-center mt-10">
       <h1 class="text-red-500 font-bold text-3xl">Đặt hàng thành công</h1>
       <h3 class="mt-4 text-8xl">✔️</h3>
       <h3 class="mt-6 text-2xl">Tổng giá trị đơn hàng: 100.000 VNĐ</h3>
-      <h3 class="mt-2 text-2xl">Mã đơn hàng: abcde12345</h3>
+      <h3 class="mt-2 text-2xl">Mã đơn hàng: <?= $_SESSION['order_id'] ?></h3>
       <div class="mt-10 grid grid-cols-2 gap-10">
         <button
           class="w-60 py-1 text-red-500 font-bold border border-red-500 rounded-lg"
