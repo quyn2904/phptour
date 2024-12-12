@@ -31,8 +31,8 @@ session_start();
       <div class="flex items-center gap-4">
         <?php
           if (isset($_SESSION["user_name"])) {
-            echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
-            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
+            echo "<a href='cart.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Cart</button></a>";
+            echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></form>";
           } else {
             echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
             echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
@@ -44,7 +44,7 @@ session_start();
       <ul
         class="mt-2 flex items-center justify-around py-4 text-2xl font-bold text-[#CE112D]"
       >
-        <li>Trang chủ</li>
+        <li><a href="index.php">Trang chủ</a></li>
         <li>Bài viết</li>
         <li><a href="product-list.php">Cửa hàng</a></li>
         <li>Về chúng tôi</li>
@@ -152,7 +152,9 @@ session_start();
     <div class="mx-auto my-10 w-3/5 border-2"></div>
 
     <div class="mt-20 h-96 w-4/5 mx-auto grid grid-cols-2 gap-10">
-      <div class="h-full w-full bg-slate-500 border"></div>
+      <div class="h-full w-full bg-slate-500 border">
+        <img class="w-full h-full object-fill"/>
+      </div>
       <div class="h-full w-full grid grid-rows-2 gap-8">
         <div class="h-full w-full grid grid-cols-2 gap-10">
           <div class="h-full w-full bg-slate-500 border"></div>
