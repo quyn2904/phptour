@@ -11,6 +11,11 @@ try {
   echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
 }
 
+if (isset($_SESSION['message'])) {
+  echo "<script>alert('".$_SESSION['message']."')</script>";
+  unset($_SESSION['message']);
+}
+
 ?>
 <html lang="en">
   <head>
@@ -94,8 +99,13 @@ try {
         </header>
         <!-- Dashboard content -->
         <main class="flex-1 bg-gray-100 p-6">
-          <h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="flex items-center justify-between">
+            <h1 class="text-3xl font-semibold mb-6">User</h1>
+            <a href="user-management-detail.php">
+              <button class="w-40 h-12 bg-slate-300 font-semibold border rounded-lg">Add new user</button>
+            </a>
+          </div>
+          <div class="bg-white mt-5 rounded-lg shadow-md overflow-hidden">
             <table class="min-w-full bg-white">
               <thead class="bg-gray-50">
                 <tr>
@@ -141,7 +151,7 @@ try {
                         <p><?= $account['id'] ?></p>
                       </td>
                       <td
-                        class="py-2 px-4 border-b border-gray-200 flex items-center"
+                        class="py-2 px-4 border-b border-gray-200 "
                       >
                         <p><?= $account['firstname'] ?></p>
                       </td>
@@ -157,17 +167,23 @@ try {
                       <td
                         class="py-2 px-4 border-b border-gray-200 text-sm text-blue-500 cursor-pointer"
                       >
-                        Edit
+                      <a href="user-management-detail.php?account_id=<?= $account['id'] ?>">
+                          <button   
+                            class="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
+                            Edit
+                          </button>
+                      </a>
                       </td>
                     </tr>
                   <?php endforeach; ?>
                 <?php endif; ?>
-                
               </tbody>
             </table>
           </div>
         </main>
       </div>
     </div>
+    <script>
+    </script>
   </body>
 </html>
