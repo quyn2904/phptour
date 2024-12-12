@@ -191,7 +191,7 @@ if (isset($_SESSION['cart'])) {
             </div>
             <p class="font-semibold text-slate-500">Thanh toán</p>
           </div>
-          <form>
+          <div>
             <div class="mb-6">
               <h2 class="text-xl font-bold mb-4">Thông tin liên hệ</h2>
               <div class="grid grid-cols-2 gap-4 mb-4">
@@ -271,7 +271,7 @@ if (isset($_SESSION['cart'])) {
                 Tiếp tục
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </form>
     </div>

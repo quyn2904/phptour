@@ -8,9 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         require_once "db.inc.php";
         $query = "SELECT * FROM account WHERE email = :email;";
-
         $stmt = $pdo->prepare($query);
-
         $stmt->bindParam(":email", $email);
         $stmt->execute();
 
