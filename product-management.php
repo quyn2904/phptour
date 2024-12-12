@@ -3,15 +3,37 @@ session_start();
 require_once "include/db.inc.php";
 
 try {
-  // Truy vấn thông tin sản phẩm
-  $stmt = $pdo->prepare("SELECT * FROM product");
-  $stmt->execute();
-  $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Truy vấn chỉ lấy một ảnh đầu tiên cho mỗi sản phẩm
+    $stmt = $pdo->prepare("
+        SELECT 
+            p.id,
+            p.name,
+            p.description,
+            p.quantity,
+            c.name AS category_name,
+            pp.price AS product_price,
+            (SELECT i.path 
+             FROM image i 
+             WHERE i.product_id = p.id 
+             ORDER BY i.id ASC LIMIT 1) AS image_path
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN productprice pp ON p.id = pp.product_id AND pp.starting_timestamp = (
+            SELECT MIN(starting_timestamp) 
+            FROM productprice 
+            WHERE product_id = p.id
+        )
+        GROUP BY p.id
+        LIMIT 10
+    ");
+    $stmt->execute();
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-  echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
+    echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
 }
-
 ?>
+
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -102,27 +124,37 @@ try {
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
                   >
+                    
+                  </th>
+                  <th
+                    class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
+                  >
                     ID
                   </th>
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
                   >
-                    FIRST NAME
+                    NAME
+                  </th>
+                  <th
+                    class="py-2 px-4 w-96 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
+                  >
+                    DESCRIPTION
                   </th>
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
                   >
-                    LAST NAME
+                    PRICE
                   </th>
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
                   >
-                    EMAIL
+                    QUANTITY
                   </th>
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
                   >
-                    ROLE
+                    CATEGORY
                   </th>
                   <th
                     class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600"
@@ -134,36 +166,26 @@ try {
               <tbody>
                 <?php if ($products): ?>
                   <?php foreach($products as $product): ?>
-                    <tr>
-                      <td
-                        class="py-2 px-4 border-b border-gray-200 "
-                      >
-                        <p><?= $product['id'] ?></p>
+                    <tr class="py-2 px-4 border-b border-gray-200 text-sm">
+                      <td>
+                        <!-- Hiển thị ảnh đầu tiên -->
+                        <?php if ($product['image_path']): ?>
+                          <img src="<?= htmlspecialchars($product['image_path']) ?>" alt="Product Image" class="h-12 w-12 object-cover">
+                        <?php else: ?>
+                          <span>No image</span>
+                        <?php endif; ?>
                       </td>
-                      <td
-                        class="py-2 px-4 border-b border-gray-200 flex items-center"
-                      >
-                        <p><?= $product['firstname'] ?></p>
-                      </td>
-                      <td class="py-2 px-4 border-b border-gray-200 text-sm">
-                      <p><?= $product['lastname'] ?></p>
-                      </td>
-                      <td class="py-2 px-4 border-b border-gray-200 text-sm">
-                      <p><?= $product['email'] ?></p>
-                      </td>
-                      <td class="py-2 px-4 border-b border-gray-200 text-sm">
-                      <p><?= $product['role'] ?></p>
-                      </td>
-                      <td
-                        class="py-2 px-4 border-b border-gray-200 text-sm text-blue-500 cursor-pointer"
-                      >
-                        Edit
-                      </td>
+                      <td><?= htmlspecialchars($product['id']) ?></td>
+                      <td><?= htmlspecialchars($product['name']) ?></td>
+                      <td class="w-96 line-clamp-3"><?= htmlspecialchars($product['description']) ?></td>
+                      <td><?= htmlspecialchars($product['product_price'] ?? 'N/A') ?></td>
+                      <td><?= htmlspecialchars($product['quantity']) ?></td>
+                      <td><?= htmlspecialchars($product['category_name'] ?? 'N/A') ?></td>
+                      <td class="text-blue-500 cursor-pointer">Edit</td>
                     </tr>
                   <?php endforeach; ?>
                 <?php endif; ?>
-                
-              </tbody>
+                </tbody>
             </table>
           </div>
         </main>
