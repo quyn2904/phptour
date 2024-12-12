@@ -20,7 +20,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($password == $result["password"]) {
                 $_SESSION["user_id"] = $result["id"];
                 $_SESSION["user_name"] = $result["firstname"] . " " . $result["lastname"];
-                header("Location: ../index.php");
+                if ($result['role'] == 'admin') {
+                    header("Location: ../user-management.php");
+                } else {
+                    header("Location: ../index.php");
+                }
                 exit();
             } else {
                 die("Invalid password.");
