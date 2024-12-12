@@ -12,8 +12,8 @@ session_start();
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <!-- header -->
-    <div class="flex items-center justify-between px-20 py-4">
+        <!-- header -->
+        <div class="flex items-center justify-between px-20 py-4">
       <h1 class="text-2xl font-bold text-red-500">Usbibracelet</h1>
       <div class="relative flex w-3/5 items-center">
         <input
@@ -25,15 +25,6 @@ session_start();
         </button>
       </div>
       <div class="flex items-center gap-4">
-        <!-- <button class="h-8">
-          <img src="./assets/images/user.png" class="h-full w-auto" />
-        </button>
-        <button class="h-8">
-          <img src="./assets/images/Cart.png" class="h-full w-auto" />
-        </button>
-        <button class="h-8">
-          <img src="./assets/images/heart.png" class="h-full w-auto" />
-        </button> -->
         <?php
           if (isset($_SESSION["user_name"])) {
             echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
@@ -43,7 +34,6 @@ session_start();
             echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
           }
         ?>
-        
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -52,7 +42,7 @@ session_start();
       >
         <li>Trang chủ</li>
         <li>Bài viết</li>
-        <li>Cửa hàng</li>
+        <li><a href="product-list.php">Cửa hàng</a></li>
         <li>Về chúng tôi</li>
         <li>Tin tức</li>
       </ul>
@@ -172,12 +162,12 @@ session_start();
         <p class="text-2xl font-bold text-[#CE112D]">TẤT CẢ SẢN PHẨM</p>
         <div class="mt-3 grid grid-cols-4 gap-x-6 gap-y-1">
           <!-- product -->
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
+          <div id="product-detail" class="h-96 w-72 rounded-sm border bg-slate-200">
             <div
               class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
             ></div>
             <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
+              <a href="product-detail.php?productId=1" class="font-bold">Classic Bracelet</a>
               <p class="mt-1">5.000.000 VND</p>
               <div class="flex items-center gap-2">
                 <div class="mt-1 flex gap-2">
@@ -376,7 +366,10 @@ session_start();
      <script>
       btn_login = document.getElementById("btn_login");
       btn_login.addEventListener("click", function () {
-        window.location.href = "./login.php";
+        window.location.href = "/login.php";
+      });
+      document.getElementById("product-detail").addEventListener("click", function () {
+        window.location.href = "/product-detail.php?product_id=1";
       });
      </script>
   </body>

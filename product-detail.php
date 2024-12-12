@@ -46,8 +46,8 @@ if (!$product) {
     />
   </head>
   <body>
-    <!-- header -->
-    <div class="flex items-center justify-between px-20 py-4">
+       <!-- header -->
+       <div class="flex items-center justify-between px-20 py-4">
       <h1 class="text-2xl font-bold text-red-500">Usbibracelet</h1>
       <div class="relative flex w-3/5 items-center">
         <input
@@ -61,15 +61,13 @@ if (!$product) {
       <div class="flex items-center gap-4">
         <?php
           if (isset($_SESSION["user_name"])) {
-            // echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
-            echo "<a href='cart.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Cart</button></a>";
+            echo "<p class='text-lg font-bold text-red-500'>" . $_SESSION["user_name"] . "</p>";
             echo "<form method='post' action='include/logout.inc.php'><button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Log Out</button></button></form>";
           } else {
             echo "<button id='btn_login' class='rounded-lg border bg-blue-400 px-6 py-2 font-bold'>Login</button>";
             echo "<button class='rounded-lg border bg-green-400 px-6 py-2 font-bold'>Register</button>";
           }
         ?>
-        
       </div>
     </div>
     <div class="bg-[#FFEAEA]">
@@ -78,7 +76,7 @@ if (!$product) {
       >
         <li>Trang chủ</li>
         <li>Bài viết</li>
-        <li>Cửa hàng</li>
+        <li><a href="product-list.php">Cửa hàng</a></li>
         <li>Về chúng tôi</li>
         <li>Tin tức</li>
       </ul>

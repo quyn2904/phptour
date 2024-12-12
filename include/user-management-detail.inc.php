@@ -10,9 +10,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     require_once "db.inc.php";
 
     if ($role == "") {
-        $role = "User";
-    } else {
-        $role = "role";
+        $role = "user";
+    } else if ($role == "admin") {
+        $role = "admin";
+    }   else if ($role == "user") {
+        $role = "user";
     }
     try {
         if (!$id) {
