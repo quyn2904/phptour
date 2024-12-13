@@ -40,17 +40,33 @@ session_start();
         ?>
       </div>
     </div>
-    <div class="bg-[#FFEAEA]">
+<div class="bg-[#FFEAEA]">
+  <ul
+    class="mt-2 flex items-center justify-around py-4 text-2xl font-bold text-[#CE112D]"
+  >
+    <li><a href="index.php">Trang chủ</a></li>
+    <li>Bài viết</li>
+    <li class="relative group">
+      <a href="product-list.php" class="cursor-pointer">Cửa hàng</a>
+      <!-- Menu thả xuống -->
       <ul
-        class="mt-2 flex items-center justify-around py-4 text-2xl font-bold text-[#CE112D]"
+        class="absolute left-0 hidden w-48 flex-col bg-white text-lg font-normal text-black shadow-lg group-hover:flex"
       >
-        <li><a href="index.php">Trang chủ</a></li>
-        <li>Bài viết</li>
-        <li><a href="product-list.php">Cửa hàng</a></li>
-        <li>Về chúng tôi</li>
-        <li>Tin tức</li>
+        <li class="px-4 py-2 hover:bg-gray-200">
+          <a href="product-category.php?category=bracelets">Vòng tay</a>
+        </li>
+        <li class="px-4 py-2 hover:bg-gray-200">
+          <a href="product-category.php?category=necklaces">Dây chuyền</a>
+        </li>
+        <li class="px-4 py-2 hover:bg-gray-200">
+          <a href="product-category.php?category=earrings">Bông tai</a>
+        </li>
       </ul>
-    </div>
+    </li>
+    <li>Về chúng tôi</li>
+    <li>Tin tức</li>
+  </ul>
+</div>
     <!-- end header -->
 
 
