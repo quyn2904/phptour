@@ -42,11 +42,19 @@ session_start();
     </div>
     <div class="bg-[#FFEAEA]">
       <ul
-        class="mt-2 flex items-center justify-around py-4 text-2xl font-bold text-[#CE112D]"
+        class="mt-2 flex items-center justify-around text-2xl font-bold text-[#CE112D] relative"
       >
         <li><a href="index.php">Trang chủ</a></li>
         <li>Bài viết</li>
-        <li><a href="product-list.php">Cửa hàng</a></li>
+        <li class="group relative py-4">
+          <a href="product-list.php" class="menu-hover">Cửa hàng</a>
+          <div class="text-lg font-semibold w-60 px-3 invisible  translate-y-[16px] -translate-x-10 bg-slate-200 absolute z-50 flex flex-col py-0 min-w-48 text-gray-800 shadow-xl group-hover:visible">
+            <a>Charm Cho Nam</a>
+            <a>Charm Cho Nữ</a>
+            <a>Charm Cho Nam</a>
+            <a>Charm Cho Nam</a>
+          </div>
+        </li>
         <li>Về chúng tôi</li>
         <li>Tin tức</li>
       </ul>
