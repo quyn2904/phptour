@@ -23,6 +23,44 @@ if ($productId) {
       $stmtPrice->bindParam(':productId', $productId, PDO::PARAM_INT);
       $stmtPrice->execute();
       $price = $stmtPrice->fetch(PDO::FETCH_ASSOC);
+
+      $categoryId = $product['category_id']; // Lấy category_id từ sản phẩm hiện tại
+
+      // Truy vấn các sản phẩm cùng categoryId
+      $stmtSimilarProducts = $pdo->prepare("
+        SELECT 
+            p.id AS product_id,
+            p.name AS product_name,
+            p.description,
+            p.quantity,
+            pp.price AS product_price,
+            c.name AS category_name,
+            i.path AS image_path
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, price 
+            FROM productprice
+            WHERE starting_timestamp = (
+                SELECT MIN(starting_timestamp) 
+                FROM productprice pp2 
+                WHERE pp2.product_id = productprice.product_id
+            )
+        ) pp ON p.id = pp.product_id
+        LEFT JOIN (
+            SELECT product_id, path 
+            FROM image i
+            WHERE id = (
+                SELECT MIN(id) 
+                FROM image i2 
+                WHERE i2.product_id = i.product_id
+            )
+        ) i ON p.id = i.product_id
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.category_id = :categoryId
+      ");
+      $stmtSimilarProducts->bindParam(':categoryId', $categoryId, PDO::PARAM_INT);
+      $stmtSimilarProducts->execute();
+      $similarProducts = $stmtSimilarProducts->fetchAll(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
       echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
   }
@@ -209,32 +247,34 @@ if (!$product) {
       >
         <div class="splide__track mx-16">
           <ul id="splide-list-similar-product" class="splide__list">
-            <!-- <li class="splide__slide mx-2">
-              <div class="border bg-slate-200 h-[300px]">
-                <img
-                  class="h-2/3 w-full"
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN-DR6EPNafE7pyya09WL-HpjohmnqJMUZyA&s"
-                />
-                <div class="px-2">
-                  <h1 class="text-base font-bold mt-2">USBI | Classic Charm</h1>
-                  <div class="mt-1">
-                    <h1 class="font-semibold text-lg text-red-500">
-                      2.500.000 đ
-                    </h1>
-                  </div>
-                  <div class="flex items-center mt-1 gap-2">
-                    <div class="h-4 mt-1 flex gap-1">
-                      <img src="./assets/images/star-yellow.svg" />
-                      <img src="./assets/images/star-yellow.svg" />
-                      <img src="./assets/images/star-yellow.svg" />
-                      <img src="./assets/images/star.svg" />
-                      <img src="./assets/images/star.svg" />
+            <?php foreach ($similarProducts as $product): ?>
+              <li class="splide__slide mx-2">
+                <div class="border bg-slate-200 h-[300px]">
+                  <img
+                    class="h-2/3 w-full"
+                    src="<?= $product['image_path'] ?>"
+                  />
+                  <div class="px-2">
+                    <h1 class="text-base font-bold mt-2"><?= $product['product_name'] ?></h1>
+                    <div class="mt-1">
+                      <h1 class="font-semibold text-lg text-red-500">
+                      <?php echo number_format($product['product_price'], 0, ',', '.') . 'đ'; ?>
+                      </h1>
                     </div>
-                    <p class="translate-y-0.5">(30)</p>
+                    <div class="flex items-center mt-1 gap-2">
+                      <div class="h-4 mt-1 flex gap-1">
+                        <img src="./assets/images/star-yellow.svg" />
+                        <img src="./assets/images/star-yellow.svg" />
+                        <img src="./assets/images/star-yellow.svg" />
+                        <img src="./assets/images/star.svg" />
+                        <img src="./assets/images/star.svg" />
+                      </div>
+                      <p class="translate-y-0.5">(30)</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </li> -->
+              </li>
+            <?php endforeach; ?>
           </ul>
         </div>
       </section>
@@ -284,34 +324,6 @@ if (!$product) {
         rewind: true,
       });
       splide.mount();
-
-      document.getElementById("splide-list-similar-product").innerHTML = `
-        <li class="splide__slide mx-2">
-            <div class="border bg-slate-200 h-[300px]">
-            <img
-                class="h-2/3 w-full"
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN-DR6EPNafE7pyya09WL-HpjohmnqJMUZyA&s"
-            />
-            <div class="px-2">
-                <h1 class="text-base font-bold mt-2">USBI | Classic Charm</h1>
-                <div class="mt-1">
-                <h1 class="font-semibold text-lg text-red-500">
-                    2.500.000 đ
-                </h1>
-                </div>
-                <div class="flex items-center mt-1 gap-2">
-                <div class="h-4 mt-1 flex gap-1">
-                    <img src="./assets/images/star-yellow.svg" />
-                    <img src="./assets/images/star-yellow.svg" />
-                    <img src="./assets/images/star-yellow.svg" />
-                    <img src="./assets/images/star.svg" />
-                    <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-                </div>
-            </div>
-            </div>
-        </li>`;
 
       document.addEventListener("DOMContentLoaded", function () {
         new Splide("#image-carousel", {
