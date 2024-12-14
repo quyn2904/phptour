@@ -73,18 +73,43 @@ if (isset($_GET['productId'])) {
       <!-- Sidebar -->
       <div class="bg-gray-900 h-vh text-white w-64 space-y-6 py-7 px-2">
         <div class="flex items-center space-x-2 px-4">
-          <img alt="Logo" class="h-8 w-8" height="30" src="https://storage.googleapis.com/a1aa/image/FEJbZin0JpKKJNiVCRapiITHPGQisQ0ejxFpXqiVNl0eOZ5TA.jpg" width="30" />
+          <img
+            alt="Logo"
+            class="h-8 w-8"
+            height="30"
+            src="https://storage.googleapis.com/a1aa/image/FEJbZin0JpKKJNiVCRapiITHPGQisQ0ejxFpXqiVNl0eOZ5TA.jpg"
+            width="30"
+          />
           <span class="text-2xl font-extrabold"> Usbibracelet </span>
         </div>
         <nav class="space-y-2">
-          <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700" href="user-management.php">
-            <i class="fas fa-tachometer-alt"> </i> USER
+          <a
+            class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"
+            href="user-management.php"
+          >
+            <i class="fas fa-tachometer-alt"> </i>
+            USER
           </a>
-          <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700" href="product-management.php">
-            <i class="fas fa-cube"> </i> PRODUCT
+          <a
+            class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"
+            href="product-management.php"
+          >
+            <i class="fas fa-cube"> </i>
+            PRODUCT
           </a>
-          <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700" href="#">
-            <i class="fas fa-table"> </i> ORDER
+          <a
+            class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"
+            href="#"
+          >
+            <i class="fas fa-table"> </i>
+            ORDER
+          </a>
+          <a
+            class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700"
+            href="blog-management.php"
+          >
+            <i class="fas fa-edit"> </i>
+            BLOG
           </a>
         </nav>
       </div>
