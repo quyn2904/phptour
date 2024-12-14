@@ -19,15 +19,16 @@ session_start();
     <!-- header -->
     <div class="flex items-center justify-between px-20 py-4">
       <h1 class="text-2xl font-bold text-red-500">Usbibracelet</h1>
-      <div class="relative flex w-3/5 items-center">
+      <form class="relative flex w-3/5 items-center" action="./include/search-product.inc.php" method="post">
         <input
           class="w-full rounded-xl border bg-[#FFEAEA] p-2"
           placeholder="Tìm kiếm ..."
+          name="searchTerm"
         />
         <button class="absolute right-3 h-6">
           <img src="./assets/images/search.png" class="h-full w-auto" />
         </button>
-      </div>
+      </form>
       <div class="flex items-center gap-4">
         <?php
           if (isset($_SESSION["user_name"])) {

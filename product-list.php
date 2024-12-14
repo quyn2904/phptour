@@ -9,7 +9,19 @@ try {
     // Kiểm tra nếu có sort trên URL
     $sort = isset($_GET['sort']) ? $_GET['sort'] : 'default';
 
-    // Xây dựng câu truy vấn SQL
+    // Kiểm tra nếu có searchTerm trong URL
+    $searchTerm = isset($_GET['searchTerm']) ? $_GET['searchTerm'] : null;
+
+    // Kiểm tra nếu có trang (page) trong URL
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // Mặc định là trang 1
+
+    // Số lượng sản phẩm trên mỗi trang
+    $productsPerPage = 12;
+
+    // Tính toán offset dựa vào trang hiện tại
+    $offset = ($page - 1) * $productsPerPage;
+
+    // Xây dựng câu truy vấn SQL cơ bản
     $sql = "
         SELECT 
             p.id AS product_id,
@@ -46,6 +58,15 @@ try {
         $sql .= " WHERE p.category_id = :categoryId ";
     }
 
+    // Thêm điều kiện tìm kiếm nếu có searchTerm
+    if ($searchTerm !== null) {
+        if ($categoryId !== null) {
+            $sql .= " AND p.name LIKE :searchTerm ";
+        } else {
+            $sql .= " WHERE p.name LIKE :searchTerm ";
+        }
+    }
+
     // Thêm điều kiện ORDER BY nếu có sắp xếp
     if ($sort === 'asc') {
         $sql .= "ORDER BY pp.price ASC ";
@@ -55,9 +76,10 @@ try {
         $sql .= "ORDER BY p.id ASC ";  // Sắp xếp theo ID nếu không có sắp xếp
     }
 
-    $sql .= "LIMIT 10;";
+    // Thêm LIMIT và OFFSET cho phân trang
+    $sql .= "LIMIT :limit OFFSET :offset";
 
-    // Chuẩn bị và thực thi câu truy vấn
+    // Chuẩn bị và thực thi câu truy vấn để lấy sản phẩm
     $stmt = $pdo->prepare($sql);
 
     // Bind giá trị nếu có categoryId
@@ -65,8 +87,53 @@ try {
         $stmt->bindParam(':categoryId', $categoryId, PDO::PARAM_INT);
     }
 
+    // Bind giá trị nếu có searchTerm
+    if ($searchTerm !== null) {
+        $stmt->bindValue(':searchTerm', '%' . $searchTerm . '%', PDO::PARAM_STR);
+    }
+
+    // Bind LIMIT và OFFSET cho phân trang
+    $stmt->bindValue(':limit', $productsPerPage, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Lấy tổng số sản phẩm để tính số trang
+    $countSql = "
+        SELECT COUNT(*) AS total FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+    ";
+
+    if ($categoryId !== null) {
+        $countSql .= " WHERE p.category_id = :categoryId ";
+    }
+
+    if ($searchTerm !== null) {
+        if ($categoryId !== null) {
+            $countSql .= " AND p.name LIKE :searchTerm ";
+        } else {
+            $countSql .= " WHERE p.name LIKE :searchTerm ";
+        }
+    }
+
+    $countStmt = $pdo->prepare($countSql);
+
+    // Bind giá trị count
+    if ($categoryId !== null) {
+        $countStmt->bindParam(':categoryId', $categoryId, PDO::PARAM_INT);
+    }
+
+    if ($searchTerm !== null) {
+        $countStmt->bindValue(':searchTerm', '%' . $searchTerm . '%', PDO::PARAM_STR);
+    }
+
+    $countStmt->execute();
+    $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
+    $totalProducts = $countResult['total'];
+
+    // Tính toán số trang
+    $totalPages = ceil($totalProducts / $productsPerPage);
 
     // Lấy tên danh mục nếu có categoryId
     $categoryName = "Tất Cả Sản Phẩm";
@@ -89,7 +156,6 @@ try {
     echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
 }
 ?>
-
 
 
 <!DOCTYPE html>
@@ -163,28 +229,47 @@ try {
       <div class="col-span-8">
         <p class="text-2xl font-bold text-[#CE112D]"><?= $categoryName ?></p>
         <div class="mt-3 grid grid-cols-4 gap-x-6 gap-y-1">
-          <!-- product -->
-          <?php foreach ($products as $product): ?>
-            <div id="product-detail" class="h-96 w-72 rounded-sm border bg-slate-200">
-            <img class="h-3/4 w-full" src="<?= $product['image_path'] ?>"/>
-            <div class="mt-3 px-3">
-              <a href="product-detail.php?productId=<?= $product['product_id'] ?>" class="font-bold"><?= $product['product_name'] ?></a>
-              <p class="mt-1"><?php echo number_format($product['product_price'], 0, ',', '.') . 'đ'; ?></p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
+          <?php if (empty($products)): ?>
+              <p>Không tìm thấy sản phẩm nào</p>
+          <?php else: ?>
+            <?php foreach ($products as $product): ?>
+              <div id="product-detail" class="h-96 w-72 rounded-sm border bg-slate-200">
+                  <img class="h-3/4 w-full" src="<?= $product['image_path'] ?>"/>
+                  <div class="mt-3 px-3">
+                      <a href="product-detail.php?productId=<?= $product['product_id'] ?>" class="font-bold"><?= $product['product_name'] ?></a>
+                      <p class="mt-1"><?php echo number_format($product['product_price'], 0, ',', '.') . 'đ'; ?></p>
+                      <div class="flex items-center gap-2">
+                          <div class="mt-1 flex gap-2">
+                              <img src="./assets/images/star.png" />
+                              <img src="./assets/images/star.png" />
+                              <img src="./assets/images/star.png" />
+                              <img src="./assets/images/star.svg" />
+                              <img src="./assets/images/star.svg" />
+                          </div>
+                          <p class="translate-y-0.5">(30)</p>
+                      </div>
+                  </div>
               </div>
-            </div>
-          </div>
-          <?php endforeach; ?> 
+            <?php endforeach; ?>
+          <?php endif; ?>
+          
+        </div>
 
-          <!-- product -->
+        <!-- Phân trang -->
+        <div class="mt-10 text-center">
+            <ul class="flex justify-center gap-4">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li>
+                        <a href="?page=<?= $i ?>
+                            <?php if (!empty($categoryId)) echo '&categoryId=' . $categoryId; ?>
+                            <?php if (!empty($sort) && $sort !== 'default') echo '&sort=' . $sort; ?>
+                            <?php if (!empty($searchTerm)) echo '&searchTerm=' . urlencode($searchTerm); ?>"
+                          class="px-4 py-2 <?= $i == $page ? 'bg-red-500 text-white' : 'bg-gray-300' ?>">
+                            <?= $i ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
         </div>
       </div>
     </div>
