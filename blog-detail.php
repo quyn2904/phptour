@@ -1,13 +1,45 @@
+<?php
+  session_start();
+  require_once "include/db.inc.php";
+
+  // Kiểm tra nếu có blogId trong URL
+  if (isset($_GET['blogId'])) {
+    $blogId = (int)$_GET['blogId'];
+
+    // Truy vấn cơ sở dữ liệu để lấy thông tin bài viết, bao gồm ngày đăng
+    $sql = "SELECT * FROM blog WHERE id = :blogId";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':blogId', $blogId, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    // Kiểm tra nếu có kết quả trả về
+    if ($stmt->rowCount() > 0) {
+      $blog = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+      echo "Bài viết không tồn tại.";
+      exit;
+    }
+  } else {
+    echo "Không có blogId trong URL.";
+    exit;
+  }
+
+  // Chuyển đổi ngày đăng thành định dạng dễ đọc
+  $createdAt = new DateTime($blog['timestamp']);
+  $formattedDate = $createdAt->format('d-m-Y H:i:s');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Chi tiết Bài Viết</title>
     <link
       href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
     <!-- header -->
@@ -42,62 +74,16 @@
         <li>Tin tức</li>
       </ul>
     </div>
-    <!-- header -->
 
-    <div class="flex justify-between mt-10 px-4 mx-auto max-w-screen-xl">
-      <article class="mx-auto w-full">
-        <header class="mb-4">
-          <h1 class="mb-4 text-3xl font-extrabold leading-tight text-gray-900">
-            Best practices for successful prototypes
-          </h1>
-        </header>
-        <p class="lead">
-          Flowbite is an open-source library of UI components built with the
-          utility-first classes from Tailwind CSS. It also includes interactive
-          elements such as dropdowns, modals, datepickers.
-        </p>
-        <p>
-          Before going digital, you might benefit from scribbling down some
-          ideas in a sketchbook. This way, you can think things through before
-          committing to an actual design project.
-        </p>
-        <p>
-          But then I found a
-          <a href="https://flowbite.com"
-            >component library based on Tailwind CSS called Flowbite</a
-          >. It comes with the most commonly used UI components, such as
-          buttons, navigation bars, cards, form elements, and more which are
-          conveniently built with the utility classes from Tailwind CSS.
-        </p>
-        <figure>
-          <img
-            src="https://flowbite.s3.amazonaws.com/typography-plugin/typography-image-1.png"
-            alt=""
-          />
-          <figcaption>Digital art by Anonymous</figcaption>
-        </figure>
-        <h2>Getting started with Flowbite</h2>
-        <p>
-          First of all you need to understand how Flowbite works. This library
-          is not another framework. Rather, it is a set of components based on
-          Tailwind CSS that you can just copy-paste from the documentation.
-        </p>
-        <p>
-          It also includes a JavaScript file that enables interactive
-          components, such as modals, dropdowns, and datepickers which you can
-          optionally include into your project via CDN or NPM.
-        </p>
-        <p>
-          You can check out the
-          <a href="https://flowbite.com/docs/getting-started/quickstart/"
-            >quickstart guide</a
-          >
-          to explore the elements by including the CDN files into your project.
-          But if you want to build a project with Flowbite I recommend you to
-          follow the build tools steps so that you can purge and minify the
-          generated CSS.
-        </p>
-      </article>
+    <!-- Render Blog Detail -->
+    <div class="px-20 py-10">
+      <h2 class="text-3xl font-bold text-[#CE112D]"><?= $blog['title']; ?></h2>
+      <div class="mt-2 text-sm italic text-gray-500">
+        <strong>Ngày đăng: </strong><?= $formattedDate; ?>
+      </div>
+      <div class="mt-6">
+        <?= $blog['content']; ?>
+      </div>
     </div>
 
     <!-- footer -->
@@ -130,7 +116,7 @@
       </div>
     </div>
     <!-- footer -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script></script>
   </body>
 </html>

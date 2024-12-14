@@ -83,24 +83,36 @@ if ($blogId) {
         </nav>
       </div>
       <!-- Main content -->
-      <div class="bg-white mx-auto mt-5 rounded-lg shadow-md p-6">
+      <div class="bg-white mx-auto mt-2 rounded-lg shadow-md p-6">
         <?php if (isset($blogId)): ?>
           <input id="blogId" type="hidden" value="<?= $blogId ?>"/>
         <?php endif; ?>
 
-        <div class="mb-4">
-          <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-          <input
-            type="text"
-            id="title"
-            class="mt-2 p-3 w-full border border-gray-300 rounded-md"
-            placeholder="Enter blog title"
-            value="<?= $title ?>"
-            required
-          />
+        <div class="mb-4 grid grid-cols-2 gap-10">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+            <input
+              type="text"
+              id="title"
+              class="mt-2 p-3 w-full border border-gray-300 rounded-md"
+              placeholder="Enter blog title"
+              value="<?= $title ?>"
+              required
+            />
+          </div>
+          <div>
+            <label for="coverImg" class="block text-sm font-medium text-gray-700">Cover Image</label>
+            <input
+              type="text"
+              id="coverImg"
+              class="mt-2 p-3 w-full border border-gray-300 rounded-md"
+              placeholder="Enter image URL"
+              value="<?= isset($coverImg) ? $coverImg : "" ?>"
+            />
+          </div>
         </div>
 
-        <div class="mb-4 h-[62vh]">
+        <div class="mb-4 h-[65vh]">
           <label for="editor" class="block text-sm font-medium text-gray-700">Content</label>
           <div id="editor"><?= $content ?></div>
         </div>
@@ -110,10 +122,11 @@ if ($blogId) {
           id="btnSave"
           class="px-6 py-2 translate-y-14 bg-blue-500 text-white rounded"
         >
-          <?= isset($blogId) ? 'Update Blog' : 'Create Blog' ?> <!-- Thay đổi tên nút tùy vào trạng thái -->
+          <?= isset($blogId) ? 'Update Blog' : 'Create Blog' ?>
         </button>
       </div>
     </div>
+
     <!-- Include the Quill library -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 
@@ -134,15 +147,16 @@ if ($blogId) {
             [{ color: [] }, { background: [] }],
             [{ font: [] }],
             [{ align: [] }],
-            ["clean"], // remove formatting button
+            ["clean"],
           ],
         },
       });
 
-      // Nếu là bài viết chỉnh sửa, dữ liệu đã có sẵn trong Quill editor
+      // Save or update the blog
       document.getElementById("btnSave").addEventListener("click", async () => {
         const title = document.getElementById("title").value;
         const content = quill.root.innerHTML;
+        const coverImgPath = document.getElementById("coverImg").value; // Lấy đường dẫn cover image
         const blogId = document.getElementById("blogId") ? document.getElementById("blogId").value : null;
 
         if (!title || !content) {
@@ -154,9 +168,8 @@ if ($blogId) {
           const formData = new FormData();
           formData.append("title", title);
           formData.append("content", content);
-          if (blogId) {
-            formData.append("blogId", blogId);
-          }
+          if (blogId) formData.append("blogId", blogId);
+          if (coverImgPath) formData.append("coverImg", coverImgPath); // Truyền đường dẫn ảnh
 
           const response = await fetch("./include/blog-management-detail.inc.php", {
             method: "POST",
@@ -169,7 +182,7 @@ if ($blogId) {
 
           const data = await response.text();
           alert(data);
-          window.location.href = "blog-management.php"; // Điều hướng về trang quản lý blog
+          window.location.href = "blog-management.php"; // Redirect back to blog management page
 
         } catch (error) {
           console.error("Error:", error);
