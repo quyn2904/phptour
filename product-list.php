@@ -1,7 +1,65 @@
 <?php
 session_start();
+require_once "include/db.inc.php";
 
+try {
+    // Kiểm tra nếu có categoryId trên URL
+    $categoryId = isset($_GET['categoryId']) ? intval($_GET['categoryId']) : null;
+
+    // Xây dựng câu truy vấn SQL
+    $sql = "
+        SELECT 
+            p.id AS product_id,
+            p.name AS product_name,
+            p.description,
+            p.quantity,
+            pp.price AS product_price,
+            c.name AS category_name,
+            i.path AS image_path
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, price 
+            FROM productprice
+            WHERE starting_timestamp = (
+                SELECT MIN(starting_timestamp) 
+                FROM productprice pp2 
+                WHERE pp2.product_id = productprice.product_id
+            )
+        ) pp ON p.id = pp.product_id
+        LEFT JOIN (
+            SELECT product_id, path 
+            FROM image i
+            WHERE id = (
+                SELECT MIN(id) 
+                FROM image i2 
+                WHERE i2.product_id = i.product_id
+            )
+        ) i ON p.id = i.product_id
+        LEFT JOIN category c ON p.category_id = c.id
+    ";
+
+    // Thêm điều kiện WHERE nếu có categoryId
+    if ($categoryId !== null) {
+        $sql .= "WHERE p.category_id = :categoryId ";
+    }
+
+    $sql .= "ORDER BY p.id ASC LIMIT 10;";
+
+    // Chuẩn bị và thực thi câu truy vấn
+    $stmt = $pdo->prepare($sql);
+
+    // Bind giá trị nếu có categoryId
+    if ($categoryId !== null) {
+        $stmt->bindParam(':categoryId', $categoryId, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "Lỗi khi truy vấn dữ liệu: " . $e->getMessage();
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -162,13 +220,12 @@ session_start();
         <p class="text-2xl font-bold text-[#CE112D]">TẤT CẢ SẢN PHẨM</p>
         <div class="mt-3 grid grid-cols-4 gap-x-6 gap-y-1">
           <!-- product -->
-          <div id="product-detail" class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
+          <?php foreach ($products as $product): ?>
+            <div id="product-detail" class="h-96 w-72 rounded-sm border bg-slate-200">
+            <img class="h-3/4 w-full" src="<?= $product['image_path'] ?>"/>
             <div class="mt-3 px-3">
-              <a href="product-detail.php?productId=1" class="font-bold">Classic Bracelet</a>
-              <p class="mt-1">5.000.000 VND</p>
+              <a href="product-detail.php?productId=<?= $product['product_id'] ?>" class="font-bold"><?= $product['product_name'] ?></a>
+              <p class="mt-1"><?php echo number_format($product['product_price'], 0, ',', '.') . 'đ'; ?></p>
               <div class="flex items-center gap-2">
                 <div class="mt-1 flex gap-2">
                   <img src="./assets/images/star.png" />
@@ -181,139 +238,7 @@ session_start();
               </div>
             </div>
           </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
-          <div class="h-96 w-72 rounded-sm border bg-slate-200">
-            <div
-              class="h-3/4 w-full bg-[url(https://global.danielwellington.com/cdn/shop/products/fgjgwwd0ks2zfgs7ukku.png?v=1686813006&width=540)] bg-contain bg-center hover:bg-[url(https://global.danielwellington.com/cdn/shop/products/21d7003412869400afe0702f9e9090c9810e55ec.png?v=1686813008)]"
-            ></div>
-            <div class="mt-3 px-3">
-              <p class="font-bold">Classic Bracelet</p>
-              <p class="mt-1">5.000.000 VND</p>
-              <div class="flex items-center gap-2">
-                <div class="mt-1 flex gap-2">
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.png" />
-                  <img src="./assets/images/star.svg" />
-                  <img src="./assets/images/star.svg" />
-                </div>
-                <p class="translate-y-0.5">(30)</p>
-              </div>
-            </div>
-          </div>
+          <?php endforeach; ?> 
 
           <!-- product -->
         </div>
