@@ -12,6 +12,7 @@
       SELECT blog.*, image.path AS image_path
       FROM blog
       LEFT JOIN image ON blog.id = image.blog_id
+      WHERE blog.isDeleted = FALSE 
       LIMIT :offset, :perPage
   ";
   $stmt = $pdo->prepare($sql);
