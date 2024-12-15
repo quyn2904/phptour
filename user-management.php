@@ -3,8 +3,8 @@ session_start();
 require_once "include/db.inc.php";
 
 try {
-  // Truy vấn thông tin sản phẩm
-  $stmt = $pdo->prepare("SELECT * FROM account");
+  // Truy vấn thông tin tài khoản chưa bị xóa
+  $stmt = $pdo->prepare("SELECT * FROM account WHERE isDeleted = false");
   $stmt->execute();
   $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -12,10 +12,9 @@ try {
 }
 
 if (isset($_SESSION['message'])) {
-  echo "<script>alert('".$_SESSION['message']."')</script>";
+  echo "<script>alert('" . $_SESSION['message'] . "')</script>";
   unset($_SESSION['message']);
 }
-
 ?>
 <html lang="en">
   <head>
@@ -167,12 +166,18 @@ if (isset($_SESSION['message'])) {
                       <td
                         class="py-2 px-4 border-b border-gray-200 text-sm text-blue-500 cursor-pointer"
                       >
-                      <a href="user-management-detail.php?account_id=<?= $account['id'] ?>">
+                        <a href="user-management-detail.php?account_id=<?= $account['id'] ?>">
                           <button   
                             class="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
                             Edit
                           </button>
-                      </a>
+                        </a>
+                        <a href="./include/delete-user.inc.php?account_id=<?= $account['id'] ?>" onclick="return confirm('Are you sure you want to delete this user?');">
+                          <button   
+                            class="rounded-md bg-red-500 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-red-400 focus:shadow-none active:bg-red-400 hover:bg-red-400 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
+                            Delete
+                          </button>
+                        </a>
                       </td>
                     </tr>
                   <?php endforeach; ?>
