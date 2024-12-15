@@ -30,7 +30,8 @@ try {
             p.quantity,
             pp.price AS product_price,
             c.name AS category_name,
-            i.path AS image_path
+            i.path AS image_path,
+            p.isDeleted as isDeleted
         FROM product p
         LEFT JOIN (
             SELECT product_id, price 
@@ -50,12 +51,13 @@ try {
                 WHERE i2.product_id = i.product_id
             )
         ) i ON p.id = i.product_id
-        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN category c ON p.category_id = c.id 
+        WHERE p.isDeleted = false
     ";
 
     // Thêm điều kiện WHERE nếu có categoryId
     if ($categoryId !== null) {
-        $sql .= " WHERE p.category_id = :categoryId ";
+        $sql .= " AND p.category_id = :categoryId ";
     }
 
     // Thêm điều kiện tìm kiếm nếu có searchTerm
